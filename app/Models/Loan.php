@@ -10,7 +10,9 @@ class Loan extends Model
 {
     use HasFactory;
 
-    public function items(): BelongsTo
+    protected $guarded = ['id'];
+
+    public function item(): BelongsTo
     {
         return $this->belongsTo(Item::class);
     }

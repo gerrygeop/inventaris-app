@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->foreignId('category_id')->nullable()->constrained('categories');
             $table->unsignedBigInteger('qty');
-            $table->integer('condition')->default(0); // bagus, rusak, diperbaiki
+            $table->string('condition')->default('Baru'); // bagus, rusak, diperbaiki
             $table->text('description')->nullable();
             $table->string('location')->nullable();
             $table->timestamps();

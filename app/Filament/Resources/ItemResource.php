@@ -62,15 +62,16 @@ class ItemResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('category.name')
-                    ->numeric()
-                    ->sortable(),
-
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
 
+                Tables\Columns\TextColumn::make('category.name')
+                    ->numeric()
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('qty')
+                    ->label('Quantity')
                     ->numeric()
                     ->sortable(),
 

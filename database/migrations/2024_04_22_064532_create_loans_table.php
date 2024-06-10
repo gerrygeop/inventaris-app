@@ -17,7 +17,7 @@ return new class extends Migration
             $table->integer('qty');
             $table->date('borrowing_date');
             $table->date('return_date');
-            $table->string('status');
+            $table->string('status')->default('pending');
             $table->timestamps();
         });
     }

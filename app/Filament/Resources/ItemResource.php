@@ -18,7 +18,7 @@ class ItemResource extends Resource
 {
     protected static ?string $model = Item::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';
 
     public static function form(Form $form): Form
     {
@@ -77,6 +77,14 @@ class ItemResource extends Resource
 
                 Tables\Columns\TextColumn::make('condition')
                     ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Baru' => 'info',
+                        'Bekas', 'Hilang' => 'warning',
+                        'Rusak' => 'danger',
+                        'Baik' => 'success',
+                        'Perbaikan' => 'info',
+                        'Kadaluwarsa' => 'danger',
+                    })
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('location')

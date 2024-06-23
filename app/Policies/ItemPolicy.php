@@ -8,10 +8,17 @@ use Illuminate\Auth\Access\Response;
 
 class ItemPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
+    public function create(User $user): bool
+    {
+        return $user->hasRole('admin');
+    }
+
+    public function update(User $user): bool
+    {
+        return $user->hasRole('admin');
+    }
+
+    public function delete(User $user): bool
     {
         return $user->hasRole('admin');
     }

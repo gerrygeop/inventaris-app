@@ -17,7 +17,11 @@ class LoanPolicy
             return true;
         }
 
-        return $loan->status == 'Pending';
+        if ($loan->status == 'Pending' && $loan->user_id == $user->id) {
+            return true;
+        }
+
+        return false;
     }
 
     /**

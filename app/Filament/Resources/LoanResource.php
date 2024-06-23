@@ -10,12 +10,14 @@ use Filament\Forms\Components\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Infolists\Components;
+use Filament\Infolists\Components\Actions\Action as InfoAction;
 use Filament\Infolists\Infolist;
 use Filament\Pages\Page;
 use Filament\Pages\SubNavigationPosition;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Pages\Page as PagesPage;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\Alignment;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,6 +27,9 @@ class LoanResource extends Resource
 {
     protected static ?string $model = Loan::class;
 
+    protected static ?string $label = 'Pinjaman';
+    protected static ?string $navigationLabel = 'Pinjaman';
+    protected static ?string $slug = 'pinjaman';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
@@ -71,18 +76,19 @@ class LoanResource extends Resource
 
                         Forms\Components\Select::make('item_id')
                             ->relationship('item', 'name')
+                            ->label('Barang')
                             ->required(),
 
                         Forms\Components\DatePicker::make('borrowing_date')
-                            ->label('Borrowing Date')
+                            ->label('Tanggal peminjaman')
                             ->required(),
 
                         Forms\Components\DatePicker::make('return_date')
-                            ->label('Return Date')
+                            ->label('Tanggal Pengembalian')
                             ->required(),
 
                         Forms\Components\TextInput::make('qty')
-                            ->label('Quantity')
+                            ->label('Jumlah')
                             ->required()
                             ->numeric()
                             ->minValue(1),
@@ -102,11 +108,11 @@ class LoanResource extends Resource
                             ->hidden(!auth()->user()->hasRole('admin')),
 
                         Forms\Components\Placeholder::make('created_at')
-                            ->label('Created at')
+                            ->label('Waktu dibuat')
                             ->content(fn (Loan $record): ?string => $record->created_at?->diffForHumans()),
 
                         Forms\Components\Placeholder::make('updated_at')
-                            ->label('Last modified at')
+                            ->label('Terakhir diperbarui')
                             ->content(fn (Loan $record): ?string => $record->updated_at?->diffForHumans()),
                     ])
                     ->columnSpan(['lg' => 1])
@@ -120,28 +126,28 @@ class LoanResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('user.name')
-                    ->label('User')
+                    ->label('Peminjam')
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('item.name')
-                    ->label('Item name')
+                    ->label('Nama barang')
                     ->searchable()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('qty')
-                    ->label('Quantity')
+                    ->label('Jumlah')
                     ->numeric()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('borrowing_date')
-                    ->label('Borrowing date')
+                    ->label('Tanggal Peminjaman')
                     ->date()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('return_date')
-                    ->label('Return date')
+                    ->label('Tanggal Pengembalian')
                     ->date()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -150,17 +156,20 @@ class LoanResource extends Resource
                     ->sortable()
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'Approved' => 'success',
-                        'Rejected' => 'danger',
+                        'Disetujui' => 'success',
+                        'Ditolak' => 'danger',
                         'Pending' => 'warning',
+                        'Dikembalikan' => 'info',
                     }),
 
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Waktu dibuat')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false),
 
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Terakhir diperbarui')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -168,6 +177,15 @@ class LoanResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options(LoanStatus::class),
+
+                Tables\Filters\TernaryFilter::make('Kepemilikan')
+                    ->trueLabel('Punya saya')
+                    ->falseLabel('Semua')
+                    ->queries(
+                        true: fn (Builder $query) => $query->where('user_id', auth()->id()),
+                        false: fn (Builder $query) => $query,
+                        blank: fn (Builder $query) => $query
+                    )
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -178,11 +196,6 @@ class LoanResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->modifyQueryUsing(function (Builder $query) {
-                if (!auth()->user()->hasRole('admin')) {
-                    $query->where('user_id', auth()->id());
-                }
-            })
             ->defaultSort('created_at', 'desc');
     }
 
@@ -192,28 +205,47 @@ class LoanResource extends Resource
             ->schema([
                 Components\Section::make()
                     ->schema([
-                        Components\TextEntry::make('user.name'),
+                        Components\TextEntry::make('user.name')
+                            ->label('Nama pengguna'),
 
-                        Components\TextEntry::make('item.name'),
+                        Components\TextEntry::make('item.name')
+                            ->label('Nama barang'),
 
                         Components\TextEntry::make('qty')
-                            ->label('Quantity'),
+                            ->label('Jumlah'),
 
                         Components\TextEntry::make('borrowing_date')
-                            ->label('Borrowing date')
+                            ->label('Tanggal peminjaman')
                             ->date(),
 
                         Components\TextEntry::make('return_date')
-                            ->label('Return date')
+                            ->label('Tanggal pengembalian')
                             ->date(),
 
                         Components\TextEntry::make('status')
                             ->badge()
                             ->color(fn (string $state): string => match ($state) {
-                                'Approved' => 'success',
-                                'Rejected' => 'danger',
+                                'Disetujui' => 'success',
+                                'Ditolak' => 'danger',
                                 'Pending' => 'warning',
-                            })
+                                'Dikembalikan' => 'info',
+                            }),
+
+                        Components\Actions::make([
+                            Components\Actions\Action::make('Telah dikembalikan')
+                                ->color('info')
+                                ->action(function (Loan $record) {
+                                    $record->status = 'Dikembalikan';
+                                    $record->save();
+                                })
+                                ->visible(function (Loan $record) {
+                                    if ($record->status == 'Disetujui' && auth()->id() == $record->user_id) {
+                                        return true;
+                                    }
+                                    return false;
+                                }),
+                        ])
+                            ->columnSpan(2),
                     ])
                     ->columns(2)
 

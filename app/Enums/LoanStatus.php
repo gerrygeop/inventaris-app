@@ -8,25 +8,28 @@ use Filament\Support\Contracts\HasLabel;
 
 enum LoanStatus: string implements HasColor, HasLabel
 {
-    case Approved = 'Approved';
-    case Rejected = 'Rejected';
+    case Disetujui = 'Disetujui';
+    case Ditolak = 'Ditolak';
     case Pending = 'Pending';
+    case Dikembalikan = 'Dikembalikan';
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::Approved => 'Approved',
-            self::Rejected => 'Rejected',
+            self::Disetujui => 'Disetujui',
+            self::Ditolak => 'Ditolak',
             self::Pending => 'Pending',
+            self::Dikembalikan => 'Dikembalikan',
         };
     }
 
     public function getColor(): string | array | null
     {
         return match ($this) {
-            self::Approved => 'success',
-            self::Rejected => 'danger',
+            self::Disetujui => 'success',
+            self::Ditolak => 'danger',
             self::Pending => 'warning',
+            self::Dikembalikan => 'info',
         };
     }
 }
